@@ -1,19 +1,3 @@
-/*
-Copyright 2018 Google Inc
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package main
 
 import (
@@ -36,13 +20,9 @@ import (
 )
 
 
-//var count int = 0
 
 
-// SD Dummy Exporter is a testing utility that exports a metric of constant value to Stackdriver
-// in a loop. Metric name and value can be specified with flags 'metric-name' and 'metric-value'.
-// SD Dummy Exporter assumes that it runs as a pod in GCE or GKE cluster, and the pod id is passed
-// to it with 'pod-id' flag (which can be passed to a pod via Downward API).
+
 func main() {
 
 
@@ -159,44 +139,4 @@ func exportMetric(stackdriverService *monitoring.Service, metricName string,
 		_, err := stackdriverService.Projects.TimeSeries.Create(projectName, request).Do()
 		return err
 
-
-
-
-
-
-
-
-
-	// var metricValue2 int64 = 1409
-	// dataPoint := &monitoring.Point{
-	// 	Interval: &monitoring.TimeInterval{
-	// 		EndTime: time.Now().Format(time.RFC3339),
-	// 	},
-	// 	//Value: &monitoring.TypedValue{
-	// 	//	Int64Value: &metricValue,
-	// 	//},
-	// 	Value: &monitoring.TypedValue{
-	// 		Int64Value: &metricValue2,
-	// 	},
-	// }
-	// // Write time series data.
-	// request := &monitoring.CreateTimeSeriesRequest{
-	// 	TimeSeries: []*monitoring.TimeSeries{
-	// 		{
-	// 			Metric: &monitoring.Metric{
-	// 				Type: "custom.googleapis.com/" + metricName,
-	// 			},
-	// 			Resource: &monitoring.MonitoredResource{
-	// 				Type:   "gke_container",
-	// 				Labels: resourceLabels,
-	// 			},
-	// 			Points: []*monitoring.Point{
-	// 				dataPoint,
-	// 			},
-	// 		},
-	// 	},
-	// }
-	// projectName := fmt.Sprintf("projects/%s", resourceLabels["project_id"])
-	// _, err := stackdriverService.Projects.TimeSeries.Create(projectName, request).Do()
-	// return err
 }
