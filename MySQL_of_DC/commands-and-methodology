@@ -1,0 +1,84 @@
+
+
+# To create the Interscity-InteractiveAssembly Docker image
+sudo docker build -t marciopsa/interscity_pal_k8s_1 .
+
+# To test the Interscity-InteractiveAssembly Docker image locally
+sudo docker run -it marciopsa/interscity_pal_k8s_1 /bin/bash 
+
+# To push the Interscity-InteractiveAssembly Docker image to Docker Hub
+docker login -u "username" -p "userpassword"
+docker push marciopsa/interscity_pal_k8s_1
+
+# To deploy the Interscity-InteractiveAssembly Docker image (our app) on Kubernetes (GKE)
+
+kubectl run docker-interscity-pal3 --image docker.io/marciopsa/interscity_pal_k8s_1 --port 2020
+
+# To create a Kubernetes Service from the Interscity-InteractiveAssembly deployment on Kubernetes (GKE)
+kubectl expose deployment docker-interscity-pal3 --type LoadBalancer --port 2020 --target-port 2020
+
+# Getting the Interscity-InteractiveAssembly App's external IP created by GKE
+kubectl get services
+
+# To create a HPA (Horizontal Pod Autoscaler) using default metrics (cpu use)
+kubectl autoscale deployment docker-interscity-pal4 --max 10 --min 1 --cpu-percent 50
+
+# To verify the working of HPA
+kubectl get hpa
+
+# To verify and identify all Pods running.
+kubectl get pods
+
+# To examine the execution of one Pod
+kubectl exec -it [pod-id] bash
+
+
+
+
+
+======================== dana commands =================
+# To compile the whole project
+dnc . -sp ../pal
+
+# To run MySQL of Data Collector (port 2022)
+~/git/k8s_emergent_systems_integration/MySQL_of_DC/interscity_dana_project/pal$ dana -sp ../dc/ InteractiveAssembly.o ../../dana/compone
+nts/ws/core.o -p 2022
+
+# To run Data Collector (port 2020)
+~/git/k8s_emergent_systems_integration/interscit_dana_no_pal2 _noMySQL/interscity_dana_project/pal$ dana -sp ../dc/ InteractiveAssembly.
+o ../../dana/components/ws/core.o -p 2020
+
+# To run Test App
+~/git/k8s_emergent_systems_integration/interscit_dana_no_pal2 _noMySQL/interscity_dana_project/clients/app_test_kubernetes1$ dana app_test_k8s2.o
+
+
+
+======================== git commands ==================
+# After you have created a Git repo. Move to folder called "git" on your filesystem and type:
+git clone http://github.com/marciopsa/k8s_emergent_systems_integration.git
+
+cd k8s_emergent_systems_integration/
+
+git status
+
+git add .
+
+git commit 
+
+git commit -m "initial data."
+
+git push origin master
+
+
+
+======================== mysql commands ==================
+~$ mysql -u root -p
+mysql> use data_collector;
+mysql> select * from data;
+
+
+
+
+
+
+

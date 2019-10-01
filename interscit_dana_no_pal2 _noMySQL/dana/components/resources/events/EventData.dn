@@ -1,0 +1,5 @@
+data EventData {
+	Object source
+	TypeField type
+	Data details
+	}

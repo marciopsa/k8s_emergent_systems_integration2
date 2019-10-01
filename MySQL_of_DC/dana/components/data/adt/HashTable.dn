@@ -1,0 +1,216 @@
+data ListItem {
+	char key[]
+	Data value
+	ListItem next
+	ListItem prev
+	}
+
+data HashBucket {
+	ListItem items
+	}
+
+component provides HashTable(Destructor, AdaptEvents) {
+	
+	int HT_LEN = 100
+	HashBucket table[] = new HashBucket[HT_LEN]
+	
+	int length
+	
+	Mutex listLock = new Mutex()
+	
+	int hash(char key[])
+		{
+		int result = 1
+		
+		for (int i = 0; i < key.arrayLength; i++)
+			{
+			result = result * key[i]
+			}
+		
+		return result % HT_LEN
+		}
+	
+	ListItem getHashItem(char key[])
+		{
+		int index = hash(key)
+		
+		if (table[index] != null)
+			{
+			ListItem lw = table[index].items
+			while (lw != null)
+				{
+				if (lw.key == key)
+					{
+					return lw
+					}
+				
+				lw = lw.next
+				}
+			}
+		
+		return null
+		}
+	
+	Data HashTable:get(char key[])
+		{
+		mutex(listLock)
+			{
+			ListItem lw = getHashItem(key)
+			
+			if (lw != null) return lw.value
+			
+			return null
+			}
+		}
+	
+	void HashTable:put(char key[], Data value)
+		{
+		mutex(listLock)
+			{
+			ListItem lw = getHashItem(key)
+			
+			if (lw != null)
+				{
+				lw.value = value
+				}
+				else
+				{
+				int index = hash(key)
+				
+				if (table[index] == null)
+					table[index] = new HashBucket()
+				
+				ListItem ni = new ListItem(key, value)
+				ni.next = table[index].items
+				if (table[index].items != null) table[index].items.prev = ni
+				table[index].items = ni
+				
+				length ++
+				}
+			}
+		}
+	
+	void HashTable:update(char key[], Data newVersion)
+		{
+		put(key, newVersion)
+		}
+	
+	void HashTable:delete(char key[])
+		{
+		mutex(listLock)
+			{
+			ListItem lw = getHashItem(key)
+			
+			if (lw != null)
+				{
+				HashBucket bucket = table[hash(key)]
+				
+				if (lw.prev != null)
+					lw.prev.next = lw.next
+				
+				if (lw.next != null)
+					lw.next.prev = lw.prev
+				
+				if (bucket.items === lw)
+					bucket.items = lw.next
+				
+				length --
+				}
+			}
+		}
+	
+	int HashTable:getLength()
+		{
+		mutex(listLock)
+			{
+			return length
+			}
+		}
+	
+	HashTableItem[] HashTable:getContents()
+		{
+		mutex(listLock)
+			{
+			HashTableItem items[] = new HashTableItem[length]
+			
+			int j = 0
+			for (int i = 0; i < HT_LEN; i++)
+				{
+				if (table[i] != null)
+					{
+					for (ListItem q = table[i].items; q != null; q = q.next)
+						{
+						items[j] = new HashTableItem()
+						items[j].key = q.key
+						items[j].value = q.value
+						j ++
+						}
+					}
+				}
+			
+			return items
+			}
+		}
+	
+	void buildFromArray(HashTableItem items[])
+		{
+		clearList()
+		
+		for (int i = 0; i < items.arrayLength; i++)
+			{
+			put(items[i].key, items[i].value)
+			}
+		}
+	
+	bool HashTable:clone(Object o)
+		{
+		HashTable src = o
+		
+		HashTableItem items[] = src.getContents()
+		
+		buildFromArray(items)
+		
+		return true
+		}
+	
+	void clearList()
+		{
+		for (int i = 0; i < HT_LEN; i++)
+			{
+			if (table[i] != null)
+				{
+				ListItem q = table[i].items
+				while (q != null)
+					{
+					ListItem td = q
+					q = q.next
+					
+					td.next = null
+					td.prev = null
+					}
+				
+				table[i].items = null
+				}
+			}
+		
+		length = 0
+		}
+	
+	void Destructor:destroy()
+		{
+		clearList()
+		}
+	
+	void AdaptEvents:inactive()
+		{
+		//flatten list contents to transfer state
+		content = getContents()
+		}
+	
+	void AdaptEvents:active()
+		{
+		//unpack list contents from transfer state
+		buildFromArray(content)
+		}
+	
+	}

@@ -1,0 +1,240 @@
+data GraphicsItem{
+	GraphicsObject object
+	GraphicsItem next
+	GraphicsItem prev
+	}
+
+data ClickableItem{
+	ClickableObject object
+	ClickableItem next
+	ClickableItem prev
+	}
+
+uses events.EventData
+
+component provides Panel requires io.Output out {
+	
+	GraphicsItem objects
+	GraphicsItem lastObject
+	
+	ClickableItem clickObjects
+	ClickableItem lastClickObject
+	
+	bool backgroundSet
+	Color backgroundColor
+	
+	eventsink Events(EventData ed)
+		{
+		if (ed.type == GraphicsObject.[repaint])
+			postRepaint()
+		}
+	
+	Panel:Panel()
+		{
+		}
+	
+	void Panel:setPosition(int x, int y)
+		{
+		xPosition = x
+		yPosition = y
+		}
+	
+	WH Panel:getPreferredSize()
+		{
+		return new WH(width, height)
+		}
+	
+	void Panel:paint(Canvas c)
+		{
+		//background
+		if (backgroundSet) c.drawRect(new Rect2D(xPosition, yPosition, width, height, backgroundColor))
+		
+		//occlude contents at panel boundary
+		c.pushSurface(new Rect(xPosition, yPosition, width, height), 0, 0)
+		
+		for (GraphicsItem gi = objects; gi != null; gi = gi.next)
+			{
+			gi.object.paint(c)
+			}
+		
+		c.popSurface()
+		}
+	
+	void Panel:addObject(GraphicsObject go)
+		{
+		GraphicsItem newItem = new GraphicsItem(go)
+		
+		if (objects == null)
+			objects = newItem
+			else
+			lastObject.next = newItem
+		
+		newItem.prev = lastObject
+		lastObject = newItem
+		
+		if (go hastype ClickableObject)
+			addClickTarget(go)
+		
+		sinkevent Events(go)
+		
+		postRepaint()
+		}
+	
+	void Panel:remObject(GraphicsObject go)
+		{
+		for (GraphicsItem bi = objects; bi != null; bi = bi.next)
+			{
+			if (bi.object == go)
+				{
+				GraphicsItem td = bi
+				
+				if (td.prev == null)
+					objects = td.next
+					else
+					td.prev.next = td.next
+				
+				if (td.next == null)
+					lastObject = td.prev
+					else
+					td.next.prev = td.prev
+				
+				break
+				}
+			}
+		
+		if (go hastype ClickableObject)
+			remClickTarget(go)
+		
+		postRepaint()
+		}
+	
+	void Panel:clearObjects()
+		{
+		GraphicsItem iw = objects
+		while (iw != null)
+			{
+			GraphicsItem td = iw
+			iw = iw.next
+			
+			td.next = null
+			td.prev = null
+			}
+		
+		objects = null
+		lastObject = null
+		
+		ClickableItem ci = clickObjects
+		while (ci != null)
+			{
+			ClickableItem td = ci
+			ci = ci.next
+			
+			td.next = null
+			td.prev = null
+			}
+		
+		clickObjects = null
+		lastClickObject = null
+		
+		postRepaint()
+		}
+	
+	GraphicsObjectItem[] Panel:getObjects()
+		{
+		return null
+		}
+	
+	Rect Panel:getBounds()
+		{
+		return new Rect(xPosition, yPosition, width, height)
+		}
+	
+	Point Panel:getPosition()
+		{
+		return new Point(xPosition, yPosition)
+		}
+	
+	void Panel:postRepaint()
+		{
+		emitevent repaint()
+		}
+	
+	void Panel:setBackground(Color c)
+		{
+		backgroundSet = true
+		backgroundColor = c
+		}
+	
+	Color Panel:getBackground()
+		{
+		return backgroundColor
+		}
+	
+	void Panel:setSize(int w, int h)
+		{
+		width = w
+		height = h
+		}
+	
+	WH Panel:getSize()
+		{
+		return new WH(width, height)
+		}
+	
+	void Panel:click(int x, int y, int button)
+		{
+		for (ClickableItem ci = clickObjects; ci != null; ci = ci.next)
+			{
+			Rect r = ci.object.getBounds()
+			
+			if (x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height)
+				{
+				ci.object.click(x - r.x, y - r.y, button)
+				break
+				}
+			}
+		}
+	
+	void addClickTarget(ClickableObject co)
+		{
+		ClickableItem nci = new ClickableItem(co)
+		
+		if (clickObjects == null)
+			clickObjects = nci
+			else
+			lastClickObject.next = nci
+		
+		nci.prev = lastClickObject
+		lastClickObject = nci
+		}
+	
+	void remClickTarget(ClickableObject o)
+		{
+		for (ClickableItem ci = clickObjects; ci != null; ci = ci.next)
+			{
+			if (ci.object === o)
+				{
+				ClickableItem td = ci
+				
+				if (td.prev == null)
+					clickObjects = td.next
+					else
+					td.prev.next = td.next
+				
+				if (td.next == null)
+					lastClickObject = td.prev
+					else
+					td.next.prev = td.prev
+				
+				break
+				}
+			}
+		}
+	
+	/*
+	void Panel:mouseDown(int x, int y, int button){}
+	void Panel:mouseUp(int x, int y, int button){}
+	void Panel:mouseMove(int x, int y){}
+	*/
+	
+	}

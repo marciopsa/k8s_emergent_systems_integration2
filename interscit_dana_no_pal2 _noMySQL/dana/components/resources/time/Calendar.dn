@@ -1,0 +1,12 @@
+/*
+ {"description" : "Retrieves the current system date and time."}
+*/
+
+uses DateTime
+
+interface Calendar{
+	/*
+	{ "@description" : "Returns the current date and time." }
+	*/
+	DateTime getTime()
+	}

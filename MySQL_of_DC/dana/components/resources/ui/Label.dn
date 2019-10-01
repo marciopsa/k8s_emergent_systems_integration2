@@ -1,0 +1,13 @@
+/*
+{ "description" : "A renderable piece of text on a grapical interface." }
+*/
+
+uses GraphicsObject
+uses Rect
+uses Color
+
+interface Label extends GraphicsObject{
+	Label(char text[], char font[], int size)
+	void setText(char text[])
+	void setColor(Color c)
+	}

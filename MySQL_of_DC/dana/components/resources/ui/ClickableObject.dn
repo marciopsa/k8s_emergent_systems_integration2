@@ -1,0 +1,14 @@
+uses GraphicsObject
+uses Rect
+uses MouseButtons
+
+/*
+ {"description" : "A graphical entity that can be clicked on (e.g. with a mouse) triggering click events to any registered listeners."}
+*/
+interface ClickableObject extends GraphicsObject{
+	
+	event click()
+	
+	Rect getBounds()
+	void click(int x, int y, int button)
+	}

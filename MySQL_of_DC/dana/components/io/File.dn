@@ -1,0 +1,244 @@
+library interface IIOFileLib{
+	int open(char file[], byte mode)
+	int write(int fd, byte content[])
+	byte[] read(int fd, int length)
+	bool setPos(int fd, int pos)
+	int getSize(int fd)
+	bool eof(int fd)
+	void close(int fd)
+	
+	void getDirectoryContents(char dir[], DCQ q)
+	void getInfo(char f[], FileInfo q)
+	
+	bool exists(char file[])
+	bool delete(char file[])
+	bool move(char file[], char newFile[])
+	bool copy(char file[], char newFile[], bool recursive)
+	
+	bool createDirectory(char dir[])
+	bool deleteDirectory(char dir[])
+	}
+
+data DCQ{
+	FileEntry entries[]
+	}
+
+component provides Service, io.File, io.FileSystem requires NativeLoader inl, io.Output out {
+	
+	static library IIOFileLib lib
+	
+	implementation File {
+		int platformHandle
+		int pos
+		Mutex rwLock = new Mutex()
+		
+		File:File(char path[], byte mode)
+			{
+			int ph = lib.open(path, mode)
+			
+			if (ph == 0)
+				throw new Exception("Unable to open file '$path'")
+			
+			platformHandle = ph
+			pos = 0
+			}
+		
+		int File:write(byte content[])
+			{
+			mutex(rwLock)
+				{
+				if (platformHandle != 0)
+					{
+					int wa = lib.write(platformHandle, content)
+					pos += wa
+					return wa
+					}
+					else
+					{
+					throw new Exception("File is not open for write")
+					}
+				}
+			}
+		
+		byte[] File:read(int length)
+			{
+			mutex(rwLock)
+				{
+				if (platformHandle != 0)
+					{
+					byte result[] = lib.read(platformHandle, length)
+					pos += result.arrayLength
+					return result
+					}
+					else
+					{
+					throw new Exception("File is not open for read")
+					}
+				}
+			}
+		
+		bool File:eof()
+			{
+			mutex(rwLock)
+				{
+				if (platformHandle != 0)
+					{
+					return lib.eof(platformHandle)
+					}
+					else
+					{
+					return true
+					}
+				}
+			}
+		
+		bool File:setPos(int p)
+			{
+			mutex(rwLock)
+				{
+				if (platformHandle != 0)
+					{
+					if (lib.setPos(platformHandle, p))
+						{
+						pos = p
+						return true
+						}
+					
+					return false
+					}
+					else
+					{
+					throw new Exception("File is not open for setPos")
+					}
+				}
+			}
+		
+		int File:getPos()
+			{
+			return pos
+			}
+		
+		int File:getSize()
+			{
+			mutex(rwLock)
+				{
+				if (platformHandle != 0)
+					{
+					return lib.getSize(platformHandle)
+					}
+					else
+					{
+					throw new Exception("File is not open for size")
+					}
+				}
+			}
+		
+		void File:close()
+			{
+			mutex(rwLock)
+				{
+				if (platformHandle != 0)
+					{
+					lib.close(platformHandle)
+					platformHandle = 0
+					}
+					else
+					{
+					throw new Exception("File is not open for closing")
+					}
+				}
+			}
+		}
+	
+	implementation FileSystem {
+		FileEntry[] FileSystem:getDirectoryContents(char path[])
+			{
+			DCQ q = new DCQ()
+			lib.getDirectoryContents(path, q)
+			return q.entries
+			}
+		
+		FileInfo FileSystem:getInfo(char path[])
+			{
+			FileInfo fi = new FileInfo(0, 0, new DateTime())
+			lib.getInfo(path, fi)
+			return fi
+			}
+		
+		bool FileSystem:exists(char file[])
+			{
+			return lib.exists(file)
+			}
+		
+		bool FileSystem:delete(char file[])
+			{
+			return lib.delete(file)
+			}
+		
+		bool FileSystem:move(char file[], char newFile[])
+			{
+			return lib.move(file, newFile)
+			}
+		
+		bool copyDirectory(char dir[], char newDir[], bool recursive)
+			{
+			createDirectory(newDir)
+			
+			FileEntry files[] = getDirectoryContents(dir)
+			
+			for (int i = 0; i < files.arrayLength; i++)
+				{
+				if (getInfo(new char[](dir, "/", files[i].name)).type == FileInfo.TYPE_DIR && recursive)
+					{
+					copyDirectory(new char[](dir, "/", files[i].name), new char[](newDir, "/", files[i].name), recursive)
+					}
+					else
+					{
+					lib.copy(new char[](dir, "/", files[i].name), new char[](newDir, "/", files[i].name), false)
+					}
+				}
+			
+			return true
+			}
+		
+		bool FileSystem:copy(char file[], char newFile[], bool recursive)
+			{
+			if (file == newFile)
+				throw new Exception("source and destination are the same")
+			
+			if (!exists(file))
+				throw new Exception("source file '$file' does not exist for copy")
+			
+			if (getInfo(file).type == FileInfo.TYPE_DIR)
+				{
+				return copyDirectory(file, newFile, recursive)
+				}
+				else
+				{
+				return lib.copy(file, newFile, recursive)
+				}
+			}
+		
+		bool FileSystem:createDirectory(char path[])
+			{
+			return lib.createDirectory(path)
+			}
+		
+		bool FileSystem:deleteDirectory(char path[])
+			{
+			return lib.deleteDirectory(path)
+			}
+		}
+	
+	implementation Service {
+		void Service:start()
+			{
+			lib = new IIOFileLib() from inl.load("io_file") :< IIOFileLib
+			}
+		
+		void Service:stop()
+			{
+			}
+		}
+	
+	}

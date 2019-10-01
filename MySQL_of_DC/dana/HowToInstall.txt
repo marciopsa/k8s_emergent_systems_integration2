@@ -1,0 +1,18 @@
+Dana requires the following steps:
+
+1. Set an environment variable DANA_HOME to point at the directory containing dnc, dana, dnl etc.
+
+2. Add DANA_HOME to your system's executable search path.
+
+On Linux you'll also need to do chmod +x dana dnc from a terminal window in the DANA_HOME directory.
+
+You can set environment variables on most Linux distributions by opening ~/.bashrc and adding to the end:
+
+export DANA_HOME=/home/where/you/put/dana/
+PATH=$PATH:$DANA_HOME
+
+Then save the file, log out and log in again.
+
+To test your install, open a terminal anywhere and issue the command: dana examples.SysTest
+
+For more help and tutorials go to http://www.projectdana.com

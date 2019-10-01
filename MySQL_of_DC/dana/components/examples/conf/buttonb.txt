@@ -1,0 +1,3 @@
+BSButton=ui.ButtonB
+Font->Canvas
+SystemInfo->SystemInfo

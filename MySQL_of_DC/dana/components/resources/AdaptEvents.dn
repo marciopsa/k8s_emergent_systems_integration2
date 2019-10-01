@@ -1,0 +1,16 @@
+/*
+ {"description" : "This interface can be provided as a secondary interface of an object, allowing it to then receive notifications of adaptation events."}
+*/
+
+interface AdaptEvents{
+	
+	/*
+	 { "@description" : "This function is called when an object implementation becomes the 'active' one for that object (i.e. this object implementation has been adapted to)." }
+	*/
+	void active(){}
+	
+	/*
+	 { "@description" : "This function is called when an object implementation becomes 'inactive' for that object (i.e. this object implementation has been adapted away from)." }
+	*/
+	void inactive(){}
+	}

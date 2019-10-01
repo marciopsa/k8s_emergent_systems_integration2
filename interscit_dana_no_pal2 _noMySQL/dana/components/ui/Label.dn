@@ -1,0 +1,53 @@
+component provides Label requires Font {
+	
+	char text[]
+	
+	Font font
+	
+	Color color
+	
+	Label:Label(char txt[], char fontPath[], int fontSize)
+		{
+		font = new Font(fontPath, fontSize)
+		
+		if (font == null) throw new Exception("Font '$fontPath' could not be loaded")
+		
+		text = txt
+		
+		color = new Color(0, 0, 0, 255)
+		}
+	
+	void Label:setText(char txt[])
+		{
+		text = txt
+		postRepaint()
+		}
+	
+	void Label:setColor(Color c)
+		{
+		color = c
+		}
+	
+	void Label:setPosition(int x, int y)
+		{
+		xPosition = x
+		yPosition = y
+		}
+	
+	Point Label:getPosition()
+		{
+		return new Point(xPosition, yPosition)
+		}
+	
+	void Label:paint(Canvas c)
+		{
+		c.drawText(new Point2D(xPosition, yPosition, color), font, text)
+		}
+	
+	WH Label:getPreferredSize()
+		{
+		return new WH(font.getTextWidth(text), font.getFontMetrics().height)
+		}
+	
+	void Label:postRepaint(){}
+	}
