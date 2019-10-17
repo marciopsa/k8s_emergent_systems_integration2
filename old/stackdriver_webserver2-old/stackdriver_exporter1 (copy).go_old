@@ -40,7 +40,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	//if count < 2 {
 	// converting the r.URL.Path[1:] variable into an int using Atoi method
 	custom_metric_value, err := strconv.Atoi(r.URL.Path[1:])
+
  	custom_metric_value_int64 := int64(custom_metric_value)
+
+	fmt.Fprintf(w, "Hi there, my number2 is %s!", custom_metric_value_int64)	
+
 	// Gather pod information
 	podId := flag.String("pod-id", "", "pod id")
 	//metricName := flag.String("metric-name", "foo", "custom metric name")
@@ -71,7 +75,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 		time.Sleep(5000 * time.Millisecond)
 	//-----------
-	//}
+	///}
 
 }
 
